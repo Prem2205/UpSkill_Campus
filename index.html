@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>ServiceHub</title>
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
+</head>
+
+<body>
+
+
+<header>
+
+    <h1>ServiceHub</h1>
+
+    <nav>
+
+        <a href="index.html">Home</a>
+
+        <a href="login.html">Login</a>
+
+        <a href="register.html">Register</a>
+
+        <a href="checkout.html">Checkout</a>
+
+    </nav>
+
+</header>
+
+
+<section class="hero">
+
+    <h2>
+        Find Trusted Services
+    </h2>
+
+    <p>
+        Connect with trusted merchants
+        and purchase services online.
+    </p>
+
+    <input
+        type="text"
+        id="search"
+        placeholder="Search services..."
+    >
+
+</section>
+
+
+<section>
+
+    <h2>Service Categories</h2>
+
+    <div class="categories">
+
+        <button
+            onclick="loadServices('Home')"
+        >
+            🏠 Home
+        </button>
+
+        <button
+            onclick="loadServices('Beauty')"
+        >
+            💇 Beauty
+        </button>
+
+        <button
+            onclick="loadServices('Pet')"
+        >
+            🐕 Pet
+        </button>
+
+        <button
+            onclick="loadServices('Repair')"
+        >
+            🔧 Repair
+        </button>
+
+        <button
+            onclick="loadServices('Fitness')"
+        >
+            🏋️ Fitness
+        </button>
+
+        <button
+            onclick="loadServices('Education')"
+        >
+            📚 Education
+        </button>
+
+    </div>
+
+</section>
+
+
+<section>
+
+    <h2>Available Services</h2>
+
+    <div
+        id="services"
+        class="service-grid"
+    ></div>
+
+</section>
+
+
+<footer>
+
+    <p>
+        © 2026 ServiceHub
+    </p>
+
+</footer>
+
+
+<script src="js/app.js"></script>
+
+</body>
+
+</html>

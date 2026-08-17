@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Merchant Dashboard</title>
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
+</head>
+
+<body>
+
+
+<header>
+
+    <h1>Merchant Dashboard</h1>
+
+    <nav>
+
+        <a href="index.html">
+            Marketplace
+        </a>
+
+        <a href="#services">
+            Services
+        </a>
+
+        <a href="#orders">
+            Orders
+        </a>
+
+        <button onclick="logout()">
+            Logout
+        </button>
+
+    </nav>
+
+</header>
+
+
+<section>
+
+    <h2>Dashboard Overview</h2>
+
+
+    <div class="dashboard">
+
+        <div class="dashboard-card">
+
+            <h3 id="orderCount">
+                0
+            </h3>
+
+            <p>Total Orders</p>
+
+        </div>
+
+
+        <div class="dashboard-card">
+
+            <h3 id="revenue">
+                ₹0
+            </h3>
+
+            <p>Total Revenue</p>
+
+        </div>
+
+
+        <div class="dashboard-card">
+
+            <h3>
+                Active
+            </h3>
+
+            <p>Merchant Account</p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section id="services">
+
+    <h2>Add New Service</h2>
+
+
+    <div class="form-container">
+
+        <form id="serviceForm">
+
+            <input
+                type="text"
+                id="serviceName"
+                placeholder="Service Name"
+                required
+            >
+
+
+            <textarea
+                id="serviceDescription"
+                placeholder="Service Description"
+            ></textarea>
+
+
+            <input
+                type="number"
+                id="servicePrice"
+                placeholder="Price"
+                required
+            >
+
+
+            <input
+                type="text"
+                id="serviceImage"
+                placeholder="Image URL"
+            >
+
+
+            <input
+                type="text"
+                id="serviceDuration"
+                placeholder="Duration e.g. 60 minutes"
+            >
+
+
+            <button type="submit">
+                Add Service
+            </button>
+
+        </form>
+
+
+        <p id="serviceMessage"></p>
+
+    </div>
+
+</section>
+
+
+<section id="orders">
+
+    <h2>Customer Orders</h2>
+
+    <div id="ordersList"></div>
+
+</section>
+
+
+<script>
+
+const API =
+    "http://localhost:5000/api";
+
+
+const token =
+    localStorage.getItem("token");
+
+
+if (!token) {
+
+    window.location.href =
+        "login.html";
+
+}
+
+
+let merchantId = null;
+
+
+// Load merchant
+async function loadMerchant() {
+
+    try {
+
+        const user =
+            JSON.parse(
+                localStorage.getItem("user")
+            );
+
+
+        const response =
+            await fetch(
+                API + "/merchants"
+            );
+
+
+        const merchants =
+            await response.json();
+
+
+        const merchant =
+            merchants.find(
+                item =>
+                    item.owner &&
+                    item.owner._id ===
+                    user.id
+            );
+
+
+        if (!merchant) {
+
+            alert(
+                "Merchant profile not found"
+            );
+
+            return;
+
+        }
+
+
+        merchantId =
+            merchant._id;
+
+
+    } catch (error) {
+
+        console.error(error);
+
+    }
+
+}
+
+
+loadMerchant();
+
+
+// Add service
+document
+    .getElementById("serviceForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const data = {
+
+                merchant:
+                    merchantId,
+
+                name:
+                    document.getElementById(
+                        "serviceName"
+                    ).value,
+
+                description:
+                    document.getElementById(
+                        "serviceDescription"
+                    ).value,
+
+                price:
+                    Number(
+                        document.getElementById(
+                            "servicePrice"
+                        ).value
+                    ),
+
+                image:
+                    document.getElementById(
+                        "serviceImage"
+                    ).value,
+
+                duration:
+                    document.getElementById(
+                        "serviceDuration"
+                    ).value
+
+            };
+
+
+            const response =
+                await fetch(
+                    API + "/services",
+                    {
+
+                        method: "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json",
+
+                            Authorization:
+                                "Bearer " + token
+
+                        },
+
+                        body:
+                            JSON.stringify(data)
+
+                    }
+                );
+
+
+            const result =
+                await response.json();
+
+
+            document.getElementById(
+                "serviceMessage"
+            ).innerText =
+                result.message;
+
+
+            if (response.ok) {
+
+                document
+                    .getElementById(
+                        "serviceForm"
+                    )
+                    .reset();
+
+            }
+
+        }
+    );
+
+
+// Load orders
+async function loadOrders() {
+
+    const response =
+        await fetch(
+            API + "/orders/merchant",
+            {
+
+                headers: {
+
+                    Authorization:
+                        "Bearer " + token
+
+                }
+
+            }
+        );
+
+
+    const orders =
+        await response.json();
+
+
+    const container =
+        document.getElementById(
+            "ordersList"
+        );
+
+
+    if (!Array.isArray(orders)) {
+
+        container.innerHTML =
+            "<p>No orders available.</p>";
+
+        return;
+
+    }
+
+
+    let revenue = 0;
+
+
+    container.innerHTML =
+        orders.map(order => {
+
+            revenue +=
+                order.totalAmount;
+
+
+            return `
+
+                <div class="order-card">
+
+                    <h3>
+                        Order #${order._id}
+                    </h3>
+
+                    <p>
+                        Customer:
+                        ${order.customer?.name || "Customer"}
+                    </p>
+
+                    <p>
+                        Amount:
+                        ₹${order.totalAmount}
+                    </p>
+
+                    <p>
+                        Status:
+                        ${order.status}
+                    </p>
+
+                </div>
+
+            `;
+
+        }).join("");
+
+
+    document.getElementById(
+        "orderCount"
+    ).innerText =
+        orders.length;
+
+
+    document.getElementById(
+        "revenue"
+    ).innerText =
+        "₹" + revenue;
+
+}
+
+
+loadOrders();
+
+
+function logout() {
+
+    localStorage.removeItem("token");
+
+    localStorage.removeItem("user");
+
+    window.location.href =
+        "login.html";
+
+}
+
+</script>
+
+</body>
+
+</html>

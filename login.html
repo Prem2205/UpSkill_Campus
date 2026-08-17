@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Login - ServiceHub</title>
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
+</head>
+
+<body>
+
+
+<header>
+
+    <h1>ServiceHub</h1>
+
+    <nav>
+
+        <a href="index.html">
+            Home
+        </a>
+
+        <a href="register.html">
+            Register
+        </a>
+
+    </nav>
+
+</header>
+
+
+<div class="form-container">
+
+    <h2>Login</h2>
+
+    <form id="loginForm">
+
+        <input
+            type="email"
+            id="email"
+            placeholder="Email"
+            required
+        >
+
+        <input
+            type="password"
+            id="password"
+            placeholder="Password"
+            required
+        >
+
+        <button type="submit">
+            Login
+        </button>
+
+    </form>
+
+    <p id="loginMessage"></p>
+
+</div>
+
+
+<script>
+
+const API =
+    "http://localhost:5000/api";
+
+
+document
+    .getElementById("loginForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const email =
+                document.getElementById(
+                    "email"
+                ).value;
+
+
+            const password =
+                document.getElementById(
+                    "password"
+                ).value;
+
+
+            const response =
+                await fetch(
+                    API + "/auth/login",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            email,
+                            password
+                        })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (response.ok) {
+
+                localStorage.setItem(
+                    "token",
+                    data.token
+                );
+
+
+                localStorage.setItem(
+                    "user",
+                    JSON.stringify(data.user)
+                );
+
+
+                document.getElementById(
+                    "loginMessage"
+                ).innerText =
+                    "Login successful!";
+
+
+                if (
+                    data.user.role ===
+                    "merchant"
+                ) {
+
+                    window.location.href =
+                        "merchant-dashboard.html";
+
+                } else {
+
+                    window.location.href =
+                        "index.html";
+
+                }
+
+            } else {
+
+                document.getElementById(
+                    "loginMessage"
+                ).innerText =
+                    data.message;
+
+            }
+
+        }
+    );
+
+</script>
+
+</body>
+
+</html>

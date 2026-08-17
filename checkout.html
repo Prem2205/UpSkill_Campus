@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Checkout - ServiceHub</title>
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
+</head>
+
+<body>
+
+
+<header>
+
+    <h1>ServiceHub Checkout</h1>
+
+    <nav>
+
+        <a href="index.html">
+            Continue Shopping
+        </a>
+
+    </nav>
+
+</header>
+
+
+<section>
+
+    <h2>Your Cart</h2>
+
+    <div id="cartItems"></div>
+
+</section>
+
+
+<section>
+
+    <h2>Checkout</h2>
+
+
+    <div class="form-container">
+
+        <form id="checkoutForm">
+
+            <textarea
+                id="address"
+                placeholder="Service Address"
+                required
+            ></textarea>
+
+
+            <select id="paymentMethod">
+
+                <option value="online">
+                    Online Payment
+                </option>
+
+                <option value="cash">
+                    Cash on Service
+                </option>
+
+            </select>
+
+
+            <button type="submit">
+                Place Order
+            </button>
+
+        </form>
+
+
+        <p id="checkoutMessage"></p>
+
+    </div>
+
+</section>
+
+
+<script>
+
+const API =
+    "http://localhost:5000/api";
+
+
+const token =
+    localStorage.getItem("token");
+
+
+if (!token) {
+
+    alert(
+        "Please login before checkout"
+    );
+
+    window.location.href =
+        "login.html";
+
+}
+
+
+const cart =
+    JSON.parse(
+        localStorage.getItem(
+            "cart"
+        )
+    ) || [];
+
+
+const cartContainer =
+    document.getElementById(
+        "cartItems"
+    );
+
+
+if (cart.length === 0) {
+
+    cartContainer.innerHTML =
+        "<p>Your cart is empty.</p>";
+
+} else {
+
+    cartContainer.innerHTML =
+        cart.map(item => `
+
+            <div class="order-card">
+
+                <h3>
+                    ${item.name}
+                </h3>
+
+                <p>
+                    Price: ₹${item.price}
+                </p>
+
+            </div>
+
+        `).join("");
+
+}
+
+
+document
+    .getElementById("checkoutForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            if (cart.length === 0) {
+
+                alert(
+                    "Your cart is empty"
+                );
+
+                return;
+
+            }
+
+
+            const merchant =
+                cart[0].merchant;
+
+
+            const items =
+                cart.map(item => ({
+
+                    service:
+                        item._id,
+
+                    quantity: 1
+
+                }));
+
+
+            const response =
+                await fetch(
+                    API + "/orders",
+                    {
+
+                        method: "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json",
+
+                            Authorization:
+                                "Bearer " + token
+
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                merchant,
+
+                                items,
+
+                                address:
+                                    document
+                                    .getElementById(
+                                        "address"
+                                    )
+                                    .value
+
+                            })
+
+                    }
+                );
+
+
+            const result =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                document.getElementById(
+                    "checkoutMessage"
+                ).innerText =
+                    result.message;
+
+                return;
+
+            }
+
+
+            document.getElementById(
+                "checkoutMessage"
+            ).innerText =
+                "Order created successfully!";
+
+
+            localStorage.removeItem(
+                "cart"
+            );
+
+
+            // Demo payment
+            const paymentResponse =
+                await fetch(
+                    API +
+                    "/orders/" +
+                    result.order._id +
+                    "/pay",
+                    {
+
+                        method: "POST",
+
+                        headers: {
+
+                            Authorization:
+                                "Bearer " + token
+
+                        }
+
+                    }
+                );
+
+
+            const payment =
+                await paymentResponse.json();
+
+
+            alert(
+                payment.message
+            );
+
+
+            window.location.href =
+                "index.html";
+
+        }
+    );
+
+</script>
+
+</body>
+
+</html>
